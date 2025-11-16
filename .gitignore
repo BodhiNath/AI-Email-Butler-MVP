@@ -1,0 +1,29 @@
+# System and Cache
+.cache/
+.config/
+.local/
+.npm/
+.pnpm-store/
+.pub-cache/
+.user_env
+
+# Backend (Python)
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+
+# Flutter
+flutter/
+ai_email_butler/build/
+ai_email_butler/.dart_tool/
+ai_email_butler/.idea/
+ai_email_butler/android/local.properties
+ai_email_butler/ios/.symlinks/
+ai_email_butler/macos/Flutter/ephemeral/
+ai_email_butler/windows/flutter/ephemeral/
+ai_email_butler/linux/flutter/ephemeral/
+
+# Archives
+*.zip
+*.tar.gz

@@ -1,0 +1,519 @@
+1. The Full System Architecture
+🟦 Overview
+
+Your system consists of three layers:
+
+A) Client App (Android + PC via Flutter)
+
+Lightweight UI
+
+Email login
+
+Local workflow runner
+
+Calls your backend for AI
+
+Stores user prefs + tokens safely
+
+Sends emails via IMAP/SMTP or Gmail API
+
+B) Cloud Backend (Serverless)
+
+API key protection
+
+Workflow syncing
+
+Logs
+
+Subscription validation
+
+Lite safety checks
+
+Connects to OpenAI’s GPT-5/GPT-4.1 API
+
+C) OpenAI Layer
+
+GPT-5 for replies
+
+GPT-4.1 mini for cheap classifications
+
+Structured outputs (JSON)
+
+Persona modeling
+
+🧩 2. Architecture Diagram (Text Version)
+                  ┌─────────────────────────────┐
+                  │         User Device          │
+                  │        (Android/PC)          │
+                  └──────────────┬───────────────┘
+                                 │
+                    OAuth Login / Email Access
+                                 │
+         ┌───────────────────────▼────────────────────────┐
+         │              Lightweight Flutter App            │
+         │  - IMAP/SMTP or Gmail API                       │
+         │  - Local workflows                              │
+         │  - Draft/review/send                            │
+         │  - Persona rules                                │
+         │  - Local SQLite (tiny)                          │
+         └───────────────┬────────────────────────────────┘
+                         │ HTTPS
+                         ▼
+         ┌────────────────────────────────────────────────┐
+         │                Serverless Backend               │
+         │  - API key proxy                                │
+         │  - Billing + entitlements                       │
+         │  - Safety layer                                 │
+         │  - Action audit logs                            │
+         └───────────────┬────────────────────────────────┘
+                         │
+                         ▼
+         ┌────────────────────────────────────────────────┐
+         │                OpenAI (GPT-5/4.1)               │
+         │  - Natural replies                              │
+         │  - Thread understanding                         │
+         │  - Action JSON outputs                          │
+         │  - Low-cost classification                      │
+         └────────────────────────────────────────────────┘
+
+🚀 3. Client Architecture (Flutter)
+
+Your Flutter app does:
+
+✔️ Email Handling
+
+Supports:
+
+IMAP (universal)
+
+SMTP (outgoing)
+
+Gmail API OAuth (recommended)
+
+Outlook Graph (optional)
+
+Packages:
+
+mailer
+
+flutter_imap_client
+
+googleapis (for Gmail)
+
+✔️ Local Storage
+
+SQLite (via drift or sqflite)
+
+Secure token storage via flutter_secure_storage
+
+✔️ Workflows
+
+Local engine runs:
+
+Triggers
+
+Conditions
+
+Actions
+
+AI suggestions
+
+Auto-send rules
+
+✔️ Persona Composer
+
+Stored locally:
+
+Tone
+
+Voice style
+
+Persona modes
+
+Signature rules
+
+Forbidden phrases
+
+✔️ UI Pages
+
+Email inbox (custom UI, not full inbox)
+
+Smart summary view
+
+Draft viewer
+
+Workflow builder
+
+Persona builder
+
+Subscription page
+
+🌐 4. Backend Architecture (Serverless)
+
+Best stack: Cloudflare Workers + Durable Objects + KV
+
+Why:
+
+SUPER cheap
+
+Global
+
+Fast
+
+No server maintenance
+
+Backend responsibilities:
+
+Proxy requests to GPT-5 API
+
+Validate user subscription (Stripe or Google Play)
+
+Store workflow cloud backups
+
+Log actions (send, reply, delete)
+
+Simple rules safety check
+
+Enforce rate limits
+
+🧠 5. The AI Layer (Structured GPT-5 + GPT-4.1)
+Prompt Structure:
+
+You send the model:
+
+latest email
+
+prior thread context
+
+your persona
+
+your rules
+
+safety guardrails
+
+desired schema
+
+Example system prompt:
+You are an AI email agent that writes in the user's voice, follows workflows, 
+classifies incoming email intent, and outputs only JSON actions.
+
+User persona:
+{{persona}}
+
+User workflow rules:
+{{workflow_rules}}
+
+Always output JSON in this schema:
+{
+  "action": "...",
+  "confidence": 0-1,
+  "reply_text": "",
+  "tone": "...",
+  "needs_review": true/false,
+  "summary": "",
+  "intent": "",
+  "auto_send_allowed": true/false
+}
+
+🏗️ 6. Email Workflow Engine (Detailed)
+
+Your app checks incoming mail → triggers AI → applies logic → chooses action.
+
+Trigger Types
+
+On message received
+
+On subject keywords
+
+On sender
+
+On thread inactivity
+
+On intent (classified by GPT-4.1)
+
+On user schedule (e.g., batch-send mornings)
+
+Conditions
+
+"If sender contains @client.com"
+
+"If subject contains invoice"
+
+"If tone is urgent"
+
+"If message length > X"
+
+"If this is a follow-up"
+
+Actions
+
+Draft reply
+
+Auto-send reply
+
+Summarize
+
+Forward
+
+Apply label
+
+Queue for later
+
+Create future follow-up
+
+You can eventually add:
+
+Custom script rules
+
+Multi-step sequences
+
+Webhook integration
+
+✨ 7. Persona System (User’s Voice Simulator)
+
+You store the user's style as rules:
+
+Example Persona Template:
+tone_preferences:
+  - short and direct
+  - no corporate buzzwords
+  - mild humor allowed
+signature: "— Charles"
+forbidden_phrases:
+  - "circle back"
+  - "synergy"
+persona_modes:
+  business: "formal, concise"
+  personal: "casual, warm"
+  aggressive: "assertive, no fluff"
+
+
+You can collect data by:
+
+Letting user rate replies
+
+Learning from actual sent emails
+
+Sampling user's writing
+
+💳 8. Monetization Design (Google Play Ready)
+Free Tier
+
+50 AI actions per month
+
+1 workflow
+
+Basic tone settings
+
+No auto-send
+
+Pro ($3.99–$9.99/month)
+
+Unlimited actions
+
+Auto-send
+
+Multiple accounts
+
+Workflow library
+
+Personalized AI memory
+
+Advanced persona
+
+AI audit log
+
+One-Time Purchases / Add-ons
+
+Sales Email Pack
+
+Customer Support Pack
+
+Professional Branding Pack
+
+This model scales beautifully.
+
+📦 9. Google Play Requirements
+
+You MUST support:
+
+OAuth secure login
+
+No storing email passwords
+
+Clear data policy
+
+Optional cloud backup
+
+In-app purchases (via flutter_inapp_purchase)
+
+Subscription SKU setup
+
+Privacy policy
+
+Terms of use
+
+GDPR/CCPA compliant toggles
+
+I'll help you write these if you need them.
+
+🛠️ 10. Code Blueprint (High-Level)
+Flutter file structure:
+/lib
+  /models
+     email.dart
+     workflow.dart
+     persona.dart
+  /services
+     imap_service.dart
+     smtp_service.dart
+     gmail_api.dart
+     backend_api.dart
+  /screens
+     inbox_screen.dart
+     email_detail_screen.dart
+     workflow_screen.dart
+     persona_screen.dart
+     settings_screen.dart
+  /widgets
+     email_tile.dart
+     rule_builder.dart
+     persona_editor.dart
+  main.dart
+
+Serverless backend:
+
+Key endpoints:
+
+POST /api/ai/decide
+POST /api/ai/reply
+POST /api/subscription/status
+POST /api/log/event
+POST /api/sync/workflows
+
+🧪 11. Safety + Anti-Stupidity Layer
+
+To avoid disasters (AI sending wrong crap):
+
+Hard Rules:
+
+Never auto-send first message in a new thread
+
+Never auto-send to legal/government addresses
+
+Never auto-send below 0.85 confidence
+
+Never auto-send flagged sensitive content
+
+Always ask before sending attachments
+
+Always surface high-risk replies
+
+User Controls:
+
+Auto-send OFF by default
+
+Review mode ON by default
+
+Daily activity digest
+
+This protects your reputation and reduces support headaches.
+
+🎯 12. Development Roadmap (6-Week MVP)
+Week 1 — Foundation
+
+Flutter project setup
+
+Email IMAP/SMTP integration
+
+Basic inbox viewer
+
+Week 2 — GPT-5 Integration
+
+Backend proxy
+
+AI draft replies
+
+AI summaries
+
+Action JSON system
+
+Week 3 — Workflow Engine
+
+Trigger/condition/action framework
+
+Basic rule builder UI
+
+Week 4 — Persona Engine
+
+Tone presets
+
+Signature rules
+
+“Write like me” calibration
+
+Week 5 — Polishing
+
+Full UI
+
+Light/dark mode
+
+Settings
+
+In-app purchases setup
+
+Week 6 — Launch Prep
+
+Google Play requirements
+
+Privacy policy
+
+Terms of use
+
+Subscription SKUs
+
+App icons
+
+Screenshots
+
+Beta release
+
+You’d have a fully usable AI email agent at this point.
+
+⚡ 13. Extra: Google Play Listing (Pre-written)
+
+If you want, I can generate:
+
+Title
+
+Short description
+
+Long description
+
+Icon ideas
+
+Screenshots plan
+
+Promo video script
+
+Just say the word.
+
+💬 14. Your Next Step
+
+Tell me:
+
+Do you want me to generate:
+
+Full code templates (Flutter + backend)?
+
+Exact GPT-5 prompt files?
+
+Database schema (SQlite + KV)?
+
+Privacy policy + ToS?
+
+Google Play store listing assets?
+
+Brand name + logo concept?
+
+Just pick any or all — I can produce the entire pack.
