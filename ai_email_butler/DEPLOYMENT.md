@@ -230,3 +230,53 @@ If the app doesn't work correctly:
 - [Google Play Console Help](https://support.google.com/googleplay/android-developer)
 - [Android App Bundle Format](https://developer.android.com/guide/app-bundle)
 - [Google Play Policies](https://play.google.com/about/developer-content-policy/)
+
+## Continuous Integration / Continuous Deployment (CI/CD)
+
+### GitHub Actions Setup
+
+The repository includes a GitHub Actions workflow (`.github/workflows/android-build.yml`) that automatically builds the app on every push. By default, it creates a debug build.
+
+To enable automated release builds with proper signing:
+
+1. **Encode your keystore file as base64**:
+   ```bash
+   base64 -i upload-keystore.jks | tr -d '\n' > keystore-base64.txt
+   ```
+
+2. **Add secrets to GitHub repository**:
+   Go to your repository → Settings → Secrets and variables → Actions, and add:
+   - `KEYSTORE_BASE64`: Content of `keystore-base64.txt`
+   - `KEYSTORE_PASSWORD`: Your keystore password
+   - `KEY_PASSWORD`: Your key password
+   - `KEY_ALIAS`: Your key alias (usually "upload")
+
+3. **Update the workflow** to decode the keystore and create key.properties:
+   ```yaml
+   - name: Decode keystore
+     env:
+       KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+     run: |
+       echo $KEYSTORE_BASE64 | base64 -d > android/upload-keystore.jks
+     working-directory: ai_email_butler
+
+   - name: Create key.properties
+     env:
+       KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+       KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+       KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+     run: |
+       cat > android/key.properties << EOF
+       storePassword=$KEYSTORE_PASSWORD
+       keyPassword=$KEY_PASSWORD
+       keyAlias=$KEY_ALIAS
+       storeFile=../upload-keystore.jks
+       EOF
+     working-directory: ai_email_butler
+
+   - name: Build release bundle
+     run: flutter build appbundle --release
+     working-directory: ai_email_butler
+   ```
+
+This allows you to build signed release bundles in your CI/CD pipeline.
