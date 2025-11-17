@@ -41,23 +41,30 @@ The application is configured to call the backend API at the URL specified in `l
 
 ## Deployment to Google Play
 
-The Flutter project is structured for easy deployment to Google Play.
+For detailed instructions on deploying this app to Google Play Store, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
-### 1. Update Metadata
-- Update the application name, version, and build number in `pubspec.yaml`.
-- Update the application ID in `android/app/build.gradle` (e.g., `applicationId "com.yourcompany.aiemailbutler"`).
+### Quick Start
 
-### 2. Build the Release Bundle
-- **Generate a signing key** (if you don't have one).
-- **Configure signing** in `android/key.properties` and `android/app/build.gradle`.
-- **Build the App Bundle (.aab) for Google Play:**
-  ```bash
-  flutter build appbundle
-  ```
-  The final file will be located at `build/app/outputs/bundle/release/app-release.aab`.
+1. Generate a signing key:
+   ```bash
+   keytool -genkey -v -keystore ~/upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   ```
 
-### 3. Upload
-- Upload the `app-release.aab` file to the Google Play Console.
+2. Configure signing:
+   ```bash
+   cd android
+   cp key.properties.template key.properties
+   # Edit key.properties with your keystore details
+   ```
+
+3. Build the app bundle:
+   ```bash
+   flutter build appbundle
+   ```
+
+4. Upload `build/app/outputs/bundle/release/app-release.aab` to Google Play Console.
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for complete step-by-step instructions.
 
 ## Future Scope (Calendar + Contacts)
 
