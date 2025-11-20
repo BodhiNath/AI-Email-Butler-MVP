@@ -1,0 +1,25 @@
+name: Check My Code
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install tools
+        run: npm install
+
+      - name: Run Tests
+        run: npm test
+
+      - name: Check Style
+        run: npm run lint
