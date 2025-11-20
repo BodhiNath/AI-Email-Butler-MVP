@@ -1,0 +1,51 @@
+# General
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+.vscode/
+
+# Root build artifacts
+**/build/
+
+# Python (backend)
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.venv/
+venv/
+.python-version
+.pytest_cache/
+.coverage
+htmlcov/
+backend/.env
+*.env
+
+# Flutter/Dart
+ai_email_butler/.dart_tool/
+ai_email_butler/.packages
+ai_email_butler/.flutter-plugins
+ai_email_butler/.flutter-plugins-dependencies
+ai_email_butler/.metadata
+
+# Android
+ai_email_butler/android/.gradle/
+ai_email_butler/android/local.properties
+ai_email_butler/android/key.properties
+**/*.jks
+**/*.keystore
+
+# iOS/macOS
+ai_email_butler/ios/Pods/
+ai_email_butler/ios/.symlinks/
+ai_email_butler/macos/Pods/
+
+# Coverage & logs
+coverage/
+logs/
+*.log
+
+# Node (if any)
+node_modules/

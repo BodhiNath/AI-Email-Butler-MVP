@@ -1,0 +1,75 @@
+name: Flutter CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'ai_email_butler/**'
+      - '.github/workflows/flutter.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'ai_email_butler/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.10.0'
+    
+    - name: Install dependencies
+      run: |
+        cd ai_email_butler
+        flutter pub get
+    
+    - name: Run analysis
+      run: |
+        cd ai_email_butler
+        flutter analyze
+    
+    - name: Format check
+      run: |
+        cd ai_email_butler
+        flutter format --set-exit-if-changed .
+    
+    - name: Run tests
+      run: |
+        cd ai_email_butler
+        flutter test --coverage
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./ai_email_butler/coverage/lcov.info
+        flags: flutter
+        name: flutter-codecov
+
+  build_apk:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.10.0'
+    
+    - name: Build APK
+      run: |
+        cd ai_email_butler
+        flutter pub get
+        flutter build apk --release
+    
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: app-release.apk
+        path: ai_email_butler/build/app/outputs/flutter-apk/app-release.apk

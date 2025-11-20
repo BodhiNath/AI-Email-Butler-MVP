@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pydantic
+python-dotenv
+openai
+python-multipart
+slowapi
+PyJWT
+pytest
+pytest-cov
+pytest-asyncio
+anthropic
