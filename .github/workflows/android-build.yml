@@ -1,0 +1,74 @@
+name: Build Android App Bundle
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'ai_email_butler/**'
+      - '.github/workflows/android-build.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'ai_email_butler/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Android App Bundle
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get Flutter dependencies
+        working-directory: ai_email_butler
+        run: flutter pub get
+
+      - name: Run Flutter analyzer
+        working-directory: ai_email_butler
+        run: flutter analyze
+
+      - name: Run Flutter tests
+        working-directory: ai_email_butler
+        run: flutter test
+
+      - name: Build Android App Bundle (debug signing)
+        working-directory: ai_email_butler
+        run: flutter build appbundle --debug
+        # Note: Using debug signing since we don't have release keys in CI
+        # For production builds, configure secrets and use --release
+
+      - name: Upload App Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-bundle
+          path: ai_email_butler/build/app/outputs/bundle/debug/app-debug.aab
+          retention-days: 7
+
+      - name: Build summary
+        run: |
+          echo "### Build Summary :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Flutter Version**: 3.24.0" >> $GITHUB_STEP_SUMMARY
+          echo "- **Java Version**: 17" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Type**: Debug (unsigned)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Output**: app-debug.aab" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "For production builds, configure signing keys in repository secrets." >> $GITHUB_STEP_SUMMARY
