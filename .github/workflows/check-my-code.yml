@@ -1,0 +1,19 @@
+name: Check My Code
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v3
+
+      - name: Show files
+        run: |
+          echo "Listing repo files:"
+          ls -R
+
+      - name: Placeholder tests
+        run: echo "No real tests yet, but the workflow is working!"
